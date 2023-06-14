@@ -67,6 +67,7 @@ public abstract class HttpFhirClient {
   // TODO(https://github.com/google/fhir-access-proxy/issues/60): Allow Accept header
   static final Set<String> REQUEST_HEADERS_TO_KEEP =
       Sets.newHashSet(
+          "authorization",
           "content-type",
           "accept-encoding",
           "last-modified",
@@ -138,9 +139,9 @@ public abstract class HttpFhirClient {
   }
 
   private HttpResponse sendRequest(RequestBuilder builder) throws IOException {
-    Preconditions.checkArgument(builder.getFirstHeader("Authorization") == null);
-    Header header = getAuthHeader();
-    builder.addHeader(header);
+    // Preconditions.checkArgument(builder.getFirstHeader("Authorization") == null);
+    // Header header = getAuthHeader();
+    // builder.addHeader(header);
     HttpUriRequest httpRequest = builder.build();
     logger.info("Request to the FHIR store is {}", httpRequest);
     // TODO reuse if creation overhead is significant.

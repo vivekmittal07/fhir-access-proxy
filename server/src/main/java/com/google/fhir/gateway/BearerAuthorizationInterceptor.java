@@ -26,13 +26,7 @@ import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 import ca.uhn.fhir.rest.server.exceptions.ForbiddenOperationException;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTDecodeException;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.interfaces.Verification;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.fhir.gateway.interfaces.AccessChecker;
@@ -89,13 +83,13 @@ public class BearerAuthorizationInterceptor {
   private static final String SIGN_ALGORITHM = "RS256";
 
   private final String tokenIssuer;
-  private final Verification jwtVerifierConfig;
+  // private final Verification jwtVerifierConfig;
   private final HttpUtil httpUtil;
   private final RestfulServer server;
   private final HttpFhirClient fhirClient;
   private final AccessCheckerFactory accessFactory;
   private final AllowedQueriesChecker allowedQueriesChecker;
-  private final String configJson;
+  // private final String configJson;
 
   BearerAuthorizationInterceptor(
       HttpFhirClient fhirClient,
@@ -114,9 +108,9 @@ public class BearerAuthorizationInterceptor {
     this.tokenIssuer = tokenIssuer;
     this.accessFactory = accessFactory;
     this.allowedQueriesChecker = allowedQueriesChecker;
-    RSAPublicKey issuerPublicKey = fetchAndDecodePublicKey();
-    jwtVerifierConfig = JWT.require(Algorithm.RSA256(issuerPublicKey, null));
-    this.configJson = httpUtil.fetchWellKnownConfig(tokenIssuer, wellKnownEndpoint);
+    // RSAPublicKey issuerPublicKey = fetchAndDecodePublicKey();
+    // jwtVerifierConfig = JWT.require(Algorithm.RSA256(issuerPublicKey, null));
+    // this.configJson = httpUtil.fetchWellKnownConfig(tokenIssuer, wellKnownEndpoint);
     logger.info("Created proxy to the FHIR store " + this.fhirClient.getBaseUrl());
   }
 
@@ -154,68 +148,68 @@ public class BearerAuthorizationInterceptor {
     return null;
   }
 
-  private JWTVerifier buildJwtVerifier(String issuer) {
+  // private JWTVerifier buildJwtVerifier(String issuer) {
+  //
+  //   if (tokenIssuer.equals(issuer)) {
+  //     return jwtVerifierConfig.withIssuer(tokenIssuer).build();
+  //   } else if (FhirProxyServer.isDevMode()) {
+  //     // If server is in DEV mode, set issuer to one from request
+  //     logger.warn("Server run in DEV mode. Setting issuer to issuer from request.");
+  //     return jwtVerifierConfig.withIssuer(issuer).build();
+  //   } else {
+  //     ExceptionUtil.throwRuntimeExceptionAndLog(
+  //         logger,
+  //         String.format("The token issuer %s does not match the expected token issuer", issuer),
+  //         AuthenticationException.class);
+  //     return null;
+  //   }
+  // }
 
-    if (tokenIssuer.equals(issuer)) {
-      return jwtVerifierConfig.withIssuer(tokenIssuer).build();
-    } else if (FhirProxyServer.isDevMode()) {
-      // If server is in DEV mode, set issuer to one from request
-      logger.warn("Server run in DEV mode. Setting issuer to issuer from request.");
-      return jwtVerifierConfig.withIssuer(issuer).build();
-    } else {
-      ExceptionUtil.throwRuntimeExceptionAndLog(
-          logger,
-          String.format("The token issuer %s does not match the expected token issuer", issuer),
-          AuthenticationException.class);
-      return null;
-    }
-  }
-
-  @VisibleForTesting
-  DecodedJWT decodeAndVerifyBearerToken(String authHeader) {
-    if (!authHeader.startsWith(BEARER_PREFIX)) {
-      ExceptionUtil.throwRuntimeExceptionAndLog(
-          logger,
-          "Authorization header is not a valid Bearer token!",
-          AuthenticationException.class);
-    }
-    String bearerToken = authHeader.substring(BEARER_PREFIX.length());
-    DecodedJWT jwt = null;
-    try {
-      jwt = JWT.decode(bearerToken);
-    } catch (JWTDecodeException e) {
-      ExceptionUtil.throwRuntimeExceptionAndLog(
-          logger, "Failed to decode JWT: " + e.getMessage(), e, AuthenticationException.class);
-    }
-    String issuer = jwt.getIssuer();
-    String algorithm = jwt.getAlgorithm();
-    JWTVerifier jwtVerifier = buildJwtVerifier(issuer);
-    logger.info(
-        String.format(
-            "JWT issuer is %s, audience is %s, and algorithm is %s",
-            issuer, jwt.getAudience(), algorithm));
-
-    if (!SIGN_ALGORITHM.equals(algorithm)) {
-      ExceptionUtil.throwRuntimeExceptionAndLog(
-          logger,
-          String.format(
-              "Only %s signing algorithm is supported, got %s", SIGN_ALGORITHM, algorithm),
-          AuthenticationException.class);
-    }
-    DecodedJWT verifiedJwt = null;
-    try {
-      verifiedJwt = jwtVerifier.verify(jwt);
-    } catch (JWTVerificationException e) {
-      // Throwing an AuthenticationException instead since it is handled by HAPI and a 401
-      // status code is returned in the response.
-      ExceptionUtil.throwRuntimeExceptionAndLog(
-          logger,
-          String.format("JWT verification failed with error: %s", e.getMessage()),
-          e,
-          AuthenticationException.class);
-    }
-    return verifiedJwt;
-  }
+  // @VisibleForTesting
+  // DecodedJWT decodeAndVerifyBearerToken(String authHeader) {
+  //   if (!authHeader.startsWith(BEARER_PREFIX)) {
+  //     ExceptionUtil.throwRuntimeExceptionAndLog(
+  //         logger,
+  //         "Authorization header is not a valid Bearer token!",
+  //         AuthenticationException.class);
+  //   }
+  //   String bearerToken = authHeader.substring(BEARER_PREFIX.length());
+  //   DecodedJWT jwt = null;
+  //   try {
+  //     jwt = JWT.decode(bearerToken);
+  //   } catch (JWTDecodeException e) {
+  //     ExceptionUtil.throwRuntimeExceptionAndLog(
+  //         logger, "Failed to decode JWT: " + e.getMessage(), e, AuthenticationException.class);
+  //   }
+  //   String issuer = jwt.getIssuer();
+  //   String algorithm = jwt.getAlgorithm();
+  //   JWTVerifier jwtVerifier = buildJwtVerifier(issuer);
+  //   logger.info(
+  //       String.format(
+  //           "JWT issuer is %s, audience is %s, and algorithm is %s",
+  //           issuer, jwt.getAudience(), algorithm));
+  //
+  //   if (!SIGN_ALGORITHM.equals(algorithm)) {
+  //     ExceptionUtil.throwRuntimeExceptionAndLog(
+  //         logger,
+  //         String.format(
+  //             "Only %s signing algorithm is supported, got %s", SIGN_ALGORITHM, algorithm),
+  //         AuthenticationException.class);
+  //   }
+  //   DecodedJWT verifiedJwt = null;
+  //   try {
+  //     verifiedJwt = jwtVerifier.verify(jwt);
+  //   } catch (JWTVerificationException e) {
+  //     // Throwing an AuthenticationException instead since it is handled by HAPI and a 401
+  //     // status code is returned in the response.
+  //     ExceptionUtil.throwRuntimeExceptionAndLog(
+  //         logger,
+  //         String.format("JWT verification failed with error: %s", e.getMessage()),
+  //         e,
+  //         AuthenticationException.class);
+  //   }
+  //   return verifiedJwt;
+  // }
 
   private AccessDecision checkAuthorization(RequestDetails requestDetails) {
     if (METADATA_PATH.equals(requestDetails.getRequestPath())) {
@@ -236,7 +230,7 @@ public class BearerAuthorizationInterceptor {
       ExceptionUtil.throwRuntimeExceptionAndLog(
           logger, "No Authorization header provided!", AuthenticationException.class);
     }
-    DecodedJWT decodedJwt = decodeAndVerifyBearerToken(authHeader);
+    DecodedJWT decodedJwt = null; // decodeAndVerifyBearerToken(authHeader);
     FhirContext fhirContext = server.getFhirContext();
     AccessDecision allowedQueriesDecision = allowedQueriesChecker.checkAccess(requestDetailsReader);
     if (allowedQueriesDecision.canAccess()) {
@@ -399,7 +393,7 @@ public class BearerAuthorizationInterceptor {
               DEFAULT_CONTENT_TYPE,
               Constants.CHARSET_NAME_UTF8,
               false);
-      writer.write(configJson);
+      // writer.write(configJson);
       writer.close();
     } catch (IOException e) {
       logger.error(
